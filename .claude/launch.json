@@ -1,0 +1,15 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "splits-dev",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "C:\\Users\\artur\\advent-splits\\node_modules\\next\\dist\\bin\\next",
+        "dev",
+        "C:\\Users\\artur\\advent-splits"
+      ],
+      "port": 3000
+    }
+  ]
+}

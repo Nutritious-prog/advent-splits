@@ -1,0 +1,45 @@
+{
+  "name": "the-advent-splits",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "db:migrate": "tsx scripts/migrate.ts",
+    "db:seed": "tsx scripts/seed.ts",
+    "db:purge": "tsx scripts/purge.ts",
+    "verify:supabase": "tsx scripts/verify-supabase.ts",
+    "check:challenges": "tsx scripts/check-challenges.ts",
+    "lint:copy": "tsx scripts/lint-copy.ts",
+    "export:seed": "tsx scripts/export-seed-sql.ts",
+    "gen:icons": "node scripts/gen-icon-nodes.mjs"
+  },
+  "dependencies": {
+    "@electric-sql/pglite": "0.3.14",
+    "@fontsource-variable/archivo": "5.2.6",
+    "@fontsource/anton": "5.2.6",
+    "@fontsource/archivo": "^5.2.6",
+    "@supabase/supabase-js": "2.75.0",
+    "lucide-react": "0.544.0",
+    "motion": "12.23.24",
+    "next": "15.5.29",
+    "postgres": "3.4.7",
+    "react": "19.1.10",
+    "react-dom": "19.1.10",
+    "server-only": "^0.0.1",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.1.14",
+    "@types/node": "22.18.8",
+    "@types/react": "19.1.17",
+    "@types/react-dom": "19.1.11",
+    "tailwindcss": "4.1.14",
+    "tsx": "4.20.6",
+    "typescript": "5.9.3",
+    "vitest": "^3.2.4"
+  }
+}

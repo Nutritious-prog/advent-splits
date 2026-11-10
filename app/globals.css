@@ -1,0 +1,106 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink: #191919;
+  --color-cream: #f2ebdd;
+  --color-mustard: #d6a441;
+  --color-charcoal: #292824;
+  --color-muted: #92908a;
+  --color-line: rgb(242 235 221 / 0.1);
+  --color-danger: #d9755b;
+
+  --font-display: "Anton", "Impact", "Arial Narrow", sans-serif;
+  --font-sans: "Archivo Variable", "Archivo", ui-sans-serif, system-ui, sans-serif;
+
+  --animate-door-pulse: door-pulse 2.2s ease-in-out infinite;
+  --animate-shimmer: shimmer 1.6s linear infinite;
+}
+
+@keyframes door-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(214 164 65 / 0.55), inset 0 0 0 2px rgb(214 164 65 / 1); }
+  50% { box-shadow: 0 0 0 7px rgb(214 164 65 / 0), inset 0 0 0 2px rgb(214 164 65 / 0.6); }
+}
+/* Hero entrance: transform only, so text is painted (and counted for LCP) immediately. */
+@keyframes hero-rise {
+  from { transform: translateY(18px); }
+  to { transform: none; }
+}
+.hero-rise { animation: hero-rise 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.hero-rise-delay { animation-delay: 0.08s; }
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+html {
+  background: var(--color-ink);
+  color: var(--color-cream);
+  -webkit-tap-highlight-color: transparent;
+  text-size-adjust: 100%;
+}
+body {
+  background: var(--color-ink);
+  font-family: var(--font-sans);
+  min-height: 100dvh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom scrollbars: thin mustard thumb on a transparent track, no arrows. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(214 164 65 / 0.55) transparent;
+}
+*:hover { scrollbar-color: rgb(214 164 65 / 0.85) transparent; }
+/* Safari and older Chromium (ignored where scrollbar-color is supported). */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgb(214 164 65 / 0.55); border-radius: 0; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-mustard); }
+::-webkit-scrollbar-button,
+::-webkit-scrollbar-corner { display: none; background: transparent; }
+
+/* Subtle film grain over everything (pointer-events none). */
+body::after {
+  content: "";
+  position: fixed;
+  inset: -50%;
+  pointer-events: none;
+  z-index: 100;
+  opacity: 0.07;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+::selection { background: var(--color-mustard); color: var(--color-ink); }
+
+:focus-visible {
+  outline: 2px solid var(--color-mustard);
+  outline-offset: 3px;
+}
+
+@layer components {
+  .display { font-family: var(--font-display); letter-spacing: 0.01em; line-height: 0.95; text-transform: uppercase; font-weight: 400; }
+  .eyebrow { font-size: 0.7rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--color-muted); font-weight: 600; }
+  .tabular { font-variant-numeric: tabular-nums; }
+
+  .hatch {
+    background-image: repeating-linear-gradient(135deg, rgb(242 235 221 / 0.035) 0 2px, transparent 2px 9px);
+  }
+  .skeleton {
+    background: linear-gradient(90deg, rgb(242 235 221 / 0.04) 25%, rgb(242 235 221 / 0.09) 50%, rgb(242 235 221 / 0.04) 75%);
+    background-size: 200% 100%;
+    animation: var(--animate-shimmer);
+  }
+
+  .pb-safe { padding-bottom: max(env(safe-area-inset-bottom), 0px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
