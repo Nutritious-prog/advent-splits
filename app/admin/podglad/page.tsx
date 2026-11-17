@@ -23,7 +23,6 @@ export default async function LandingPreview({ searchParams }: { searchParams: P
         unlocked={unlockedCount(at)}
         days={config.days}
         nickname={null}
-        emailEnabled={false}
         instagram={config.instagram}
         simulated
       />

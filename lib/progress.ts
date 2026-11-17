@@ -140,7 +140,6 @@ export async function buildState(p: ParticipantRow, now: Date): Promise<Calendar
       gender: p.gender ?? "N",
       difficultyPref: p.difficulty_pref,
       excludeEquipment: p.exclude_equipment,
-      linked: !!p.auth_user_id,
       isDemo: p.is_demo,
     },
     doors,

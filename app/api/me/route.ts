@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { getDb } from "@/lib/db";
 import { destroySession, getParticipant, type ParticipantRow } from "@/lib/session";
-import { authAdminClient } from "@/lib/supabase-auth";
 import { fail, handle, json, readJson } from "@/lib/api";
 import { buildState } from "@/lib/progress";
 import { requestNow } from "@/lib/test-clock";
@@ -34,23 +33,11 @@ export const PATCH = handle(async (req) => {
   return json(await buildState(rows[0], await requestNow()));
 });
 
-// Permanently deletes the participant: progress, sessions and (if configured) the Supabase Auth user holding the e-mail.
+// Permanently deletes the participant: progress and sessions.
 export const DELETE = handle(async (req) => {
   const p = await getParticipant();
   if (!p) return fail(401, "Nie masz jeszcze profilu.", "NO_PROFILE");
   z.object({ confirm: z.literal("USUŃ") }).parse(await readJson(req));
-  if (p.auth_user_id) {
-    const admin = authAdminClient();
-    if (admin) {
-      const { error } = await admin.auth.admin.deleteUser(p.auth_user_id);
-      if (error && !/not.?found/i.test(error.message)) {
-        console.error("delete auth user", error.message);
-        return fail(502, "Nie udało się usunąć danych logowania. Spróbuj ponownie za chwilę.");
-      }
-    } else {
-      console.warn("SUPABASE_SERVICE_ROLE_KEY not set: auth user", p.auth_user_id, "must be deleted manually");
-    }
-  }
   const db = await getDb();
   await db.query("delete from participants where id = $1", [p.id]); // cascades to sessions + assignments
   await destroySession();

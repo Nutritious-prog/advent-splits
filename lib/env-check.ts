@@ -42,10 +42,6 @@ export function productionConfigProblems(env: Env): string[] {
   if (!contact || /UZUPE[ŁL]NIJ/i.test(contact)) problems.push("NEXT_PUBLIC_CONTACT_EMAIL is missing (privacy policy contact).");
   else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact)) problems.push(`NEXT_PUBLIC_CONTACT_EMAIL is not a valid e-mail: "${contact}".`);
 
-  // Account deletion must also remove the e-mail from Supabase Auth (audit LEG-02).
-  if (env.SUPABASE_URL && env.SUPABASE_ANON_KEY && !env.SUPABASE_SERVICE_ROLE_KEY)
-    problems.push("SUPABASE_SERVICE_ROLE_KEY is required when e-mail login is enabled (account deletion removes the login e-mail).");
-
   return problems;
 }
 

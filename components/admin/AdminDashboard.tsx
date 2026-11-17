@@ -14,7 +14,7 @@ interface Stats {
   serverNow: string;
   unlocked: number;
   days: number;
-  totals: { participants: number; linked: number; revealed: number; completed: number; results: number };
+  totals: { participants: number; revealed: number; completed: number; results: number };
   completionRate: number;
   daily: { date: string; active: number }[];
   signups: { date: string; n: number }[];
@@ -102,7 +102,6 @@ function StatsTab() {
   const maxDaily = Math.max(1, ...s.daily.map((d) => d.active));
   const tiles = [
     ["Uczestnicy", s.totals.participants],
-    ["Z e-mailem", s.totals.linked],
     ["Odkryte okienka", s.totals.revealed],
     ["Ukończone", s.totals.completed],
     ["Wskaźnik ukończeń", `${Math.round(s.completionRate * 100)}%`],

@@ -10,9 +10,8 @@ export const GET = handle(async () => {
   const db = await getDb();
   const one = async <T,>(sql: string, p: unknown[] = []) => (await db.query<T>(sql, p))[0];
 
-  const totals = await one<{ participants: number; linked: number; revealed: number; completed: number; results: number }>(
+  const totals = await one<{ participants: number; revealed: number; completed: number; results: number }>(
     `select (select count(*)::int from participants where not is_demo) as participants,
-            (select count(*)::int from participants where not is_demo and auth_user_id is not null) as linked,
             (select count(*)::int from assignments a join participants p on p.id = a.participant_id where not p.is_demo) as revealed,
             (select count(*)::int from assignments a join participants p on p.id = a.participant_id where not p.is_demo and a.completed_at is not null) as completed,
             (select count(*)::int from assignments a join participants p on p.id = a.participant_id where not p.is_demo and a.result is not null) as results`,

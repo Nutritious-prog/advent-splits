@@ -25,8 +25,8 @@ const STEPS = [
 ];
 
 const FAQ = [
-  ["Czy muszę zakładać konto?", "Nie. Wystarczy nick. Jeśli chcesz mieć kalendarz na kilku urządzeniach albo boisz się wyczyścić przeglądarkę, w profilu dodasz e-mail i zalogujesz się 6-cyfrowym kodem."],
-  ["Co jeśli wyczyszczę dane przeglądarki?", "Postęp jest w naszej bazie, ale bez e-maila tylko ta przeglądarka ma do niego klucz. Wyczyszczenie danych albo przejście z aplikacji Instagrama do Safari może odciąć Ci dostęp. Dodaj e-mail, a problem znika."],
+  ["Czy muszę zakładać konto?", "Nie. Wystarczy nick. Bez hasła i bez maila."],
+  ["Co jeśli wyczyszczę dane przeglądarki?", "Postęp jest w naszej bazie, ale klucz do niego trzyma tylko ta przeglądarka. Wracaj więc zawsze na tym samym telefonie i w tej samej aplikacji: jeśli dołączysz z Instagrama, wracaj przez Instagram. Wyczyszczenie danych przeglądarki albo tryb prywatny odetnie dostęp."],
   ["Mogę nadrabiać zaległe dni?", "Tak. Każde odblokowane okienko zostaje otwarte do końca, także po 24 grudnia. Przyszłych nie da się otworzyć wcześniej (serwer pilnuje, nie Twój zegarek)."],
   ["Nie biegam, jeżdżę na rowerze albo pływam. To dla mnie?", "Tak. Kalendarz jest dla ludzi od sportów wytrzymałościowych, a każdy dzień ma zamiennik dla innej dyscypliny: dzień biegowy zrobisz na rowerze lub w basenie, dzień basenowy na rowerze lub biegiem."],
   ["Czy wszyscy mają te same wyzwania?", "Tak. Dzień 8 to ten sam split dla każdego uczestnika, więc możecie się porównywać, ścigać i wymieniać wynikami."],
@@ -40,13 +40,12 @@ export function Landing(props: {
   unlocked: number;
   days: number;
   nickname: string | null;
-  emailEnabled: boolean;
   instagram: string;
   simulated?: boolean;
 }) {
   const now = useServerClock(props.serverNow, { simulated: props.simulated });
   const effectiveNow = props.simulated ? Date.parse(props.serverNow) : now;
-  const [join, setJoin] = useState<null | "join" | "login">(null);
+  const [join, setJoin] = useState(false);
   const [invite, setInvite] = useState(false);
   const toast = useToast();
   const startMs = Date.parse(props.startAt);
@@ -56,7 +55,7 @@ export function Landing(props: {
   const joined = !!props.nickname;
 
   useEffect(() => {
-    if (!joined && new URLSearchParams(window.location.search).get("dolacz")) setJoin("join");
+    if (!joined && new URLSearchParams(window.location.search).get("dolacz")) setJoin(true);
   }, [joined]);
 
   async function shareLink() {
@@ -81,7 +80,7 @@ export function Landing(props: {
       Przejdź do kalendarza <ArrowRight size={18} />
     </Link>
   ) : (
-    <Button size="lg" onClick={() => setJoin("join")}>
+    <Button size="lg" onClick={() => setJoin(true)}>
       Dołącz do wyzwania <ArrowRight size={18} />
     </Button>
   );
@@ -94,10 +93,6 @@ export function Landing(props: {
           <Link href="/kalendarz" className="text-xs font-bold uppercase tracking-[0.14em] text-cream/70 hover:text-cream">
             {props.nickname} →
           </Link>
-        ) : props.emailEnabled ? (
-          <button onClick={() => setJoin("login")} className="min-h-11 text-xs font-bold uppercase tracking-[0.14em] text-cream/60 hover:text-cream">
-            Zaloguj
-          </button>
         ) : (
           <a href={`https://instagram.com/${props.instagram}`} target="_blank" rel="noopener" className="flex items-center gap-1 text-xs font-bold uppercase tracking-[0.14em] text-cream/60 hover:text-cream">
             <AtSign size={14} /> {props.instagram}
@@ -339,7 +334,7 @@ export function Landing(props: {
         </div>
       </footer>
 
-      <JoinSheet key={join ?? "closed"} open={!!join} onClose={() => setJoin(null)} emailEnabled={props.emailEnabled} startMode={join ?? "join"} />
+      <JoinSheet key={join ? "open" : "closed"} open={join} onClose={() => setJoin(false)} />
       <ShareSheet
         open={invite}
         onClose={() => setInvite(false)}

@@ -7,7 +7,6 @@ import { Door } from "./Door";
 import { ChallengeCard } from "./ChallengeCard";
 import { Confetti } from "./Confetti";
 import { ShareSheet } from "./ShareSheet";
-import { SaveProgressSheet } from "./SaveProgressSheet";
 import { FinaleSheet } from "./FinaleSheet";
 import { Medal } from "@/components/Medal";
 import { Sheet } from "@/components/ui/Sheet";
@@ -26,33 +25,14 @@ const DONE_LINES = [
   "ZALICZONE. TO BYŁA DOBRA, ZŁA DECYZJA.",
 ];
 
-const SNOOZE_KEY = "tua_save_prompt_later";
-function snoozed() {
-  try {
-    return sessionStorage.getItem(SNOOZE_KEY) === "1";
-  } catch {
-    return false;
-  }
-}
-function snooze() {
-  try {
-    sessionStorage.setItem(SNOOZE_KEY, "1");
-  } catch {}
-}
-
 export function CalendarApp({
   initial,
   mode,
-  savePrompt = "off",
 }: {
   initial: CalendarState;
   mode: CalendarMode;
-  /** "on": e-mail login configured · "preview": show the popup without a working form (dev) · "off" */
-  savePrompt?: "on" | "preview" | "off";
 }) {
   const [state, setState] = useState(initial);
-  const [saveOpen, setSaveOpen] = useState(false);
-  const savePending = useRef(false);
   const [finaleOpen, setFinaleOpen] = useState(false);
   const [summaryOpen, setSummaryOpen] = useState(false);
   const [opening, setOpening] = useState<number | null>(null);
@@ -131,11 +111,6 @@ export function CalendarApp({
 
   function closeChallenge() {
     setActiveDay(null);
-    // Guests: ask to secure progress after the reward moment, never before revealing a door.
-    if (savePending.current) {
-      savePending.current = false;
-      setTimeout(() => setSaveOpen(true), 350);
-    }
   }
 
   async function openDoorNow(door: DoorState) {
@@ -189,8 +164,6 @@ export function CalendarApp({
             setActiveDay(null);
             setFinaleOpen(true);
           }, 1600);
-        } else if (next && savePrompt !== "off" && mode.kind === "public" && !next.participant.linked && !snoozed()) {
-          savePending.current = true;
         }
       } else {
         toast("info", "Cofnięto", "Wyzwanie wraca do listy do zrobienia.");
@@ -382,27 +355,6 @@ export function CalendarApp({
             : `Mój grudzień: ${s.completed}/${state.days} splitów zaliczonych, najdłuższa seria ${s.longestStreak}. Godność: niekoniecznie.`
         }
         title="Mój grudzień"
-      />
-
-      <SaveProgressSheet
-        open={saveOpen}
-        completed={state.stats.completed}
-        days={state.days}
-        emailEnabled={savePrompt === "on"}
-        onLater={() => {
-          snooze();
-          setSaveOpen(false);
-        }}
-        onLinked={(m) => {
-          setSaveOpen(false);
-          if (m === "switched" || m === "merged") {
-            toast("success", m === "merged" ? "Postęp scalony" : "Zalogowano", m === "merged" ? "Okienka z obu urządzeń są teraz w jednym kalendarzu." : "Przełączamy Cię na kalendarz przypisany do tego maila.");
-            setTimeout(() => window.location.reload(), 900);
-            return;
-          }
-          setState((s) => ({ ...s, participant: { ...s.participant, linked: true } }));
-          toast("success", "Postęp zabezpieczony", "Na nowym urządzeniu zalogujesz się kodem z maila.");
-        }}
       />
 
       {confetti && <Confetti seed={confetti} />}

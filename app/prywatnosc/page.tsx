@@ -45,17 +45,13 @@ export default function PrivacyPage() {
             <li>
               <strong className="text-cream">Postęp w kalendarzu:</strong> odkryte wyzwania, ukończenia z datą, wpisane przez Ciebie wyniki i preferencje (poziom, sprzęt).
             </li>
-            <li>
-              <strong className="text-cream">Adres e-mail</strong>, tylko jeśli go dodasz. Służy wyłącznie do logowania kodem na innym urządzeniu. Jedyne maile, jakie dostaniesz,
-              to kody logowania. Adres jest przechowywany w module logowania (Supabase Auth), a nie w danych kalendarza.
-            </li>
           </ul>
-          <p>Nie zbieramy haseł, imienia i nazwiska, numeru telefonu, lokalizacji ani zdjęć. Grafiki do relacji generują się w locie i nie są zapisywane.</p>
+          <p>Nie zbieramy haseł, adresów e-mail, imienia i nazwiska, numeru telefonu, lokalizacji ani zdjęć. Grafiki do relacji generują się w locie i nie są zapisywane.</p>
         </S>
 
         <S title="Po co i na jakiej podstawie">
           <p>
-            Żeby świadczyć usługę, o którą prosisz: prowadzić Twój kalendarz, zapamiętać postęp i umożliwić logowanie (art. 6 ust. 1 lit. b RODO). Zanonimizowane statystyki zbiorcze
+            Żeby świadczyć usługę, o którą prosisz: prowadzić Twój kalendarz i zapamiętać postęp (art. 6 ust. 1 lit. b RODO). Zanonimizowane statystyki zbiorcze
             (np. ile osób ukończyło dany dzień) pomagają nam ulepszać wyzwania i nie pozwalają nikogo zidentyfikować (art. 6 ust. 1 lit. f RODO).
           </p>
         </S>
@@ -65,16 +61,11 @@ export default function PrivacyPage() {
             Używamy wyłącznie niezbędnych ciasteczek: jednego, które pamięta, że to Ty (sesja), oraz technicznych dla panelu organizatora. Żadnych ciasteczek reklamowych ani
             analitycznych, dlatego nie pokazujemy banera zgód.
           </p>
-          <p>
-            Dodatkowo przeglądarka zapamiętuje na czas jednej wizyty (sessionStorage), że odłożyłeś lub odłożyłaś przypomnienie o zapisaniu postępu, żeby nie pokazywać go
-            ponownie. Ta informacja nie opuszcza Twojego urządzenia.
-          </p>
         </S>
 
         <S title="Komu powierzamy dane">
           <p>
-            Dane są przechowywane u dostawców infrastruktury, którzy przetwarzają je wyłącznie na nasze zlecenie: Supabase (baza danych i logowanie, serwery w UE), Vercel (hosting
-            strony) oraz dostawca wysyłki maili z kodami. Nie przekazujemy danych nikomu w celach marketingowych.
+            Dane są przechowywane u dostawców infrastruktury, którzy przetwarzają je wyłącznie na nasze zlecenie: Supabase (baza danych, serwery w UE) i Vercel (hosting strony). Nie przekazujemy danych nikomu w celach marketingowych.
           </p>
         </S>
 

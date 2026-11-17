@@ -40,12 +40,6 @@ describe("production config guard", () => {
     expect(productionConfigProblems({ ...rest, REQUIRE_PROD_CONFIG: "true", NEXT_PUBLIC_SITE_URL: "" }).length).toBe(1);
   });
 
-  it("requires the service role key when e-mail login is enabled (LEG-02)", () => {
-    const withAuth = { ...good, SUPABASE_URL: "https://x.supabase.co", SUPABASE_ANON_KEY: "anon" };
-    expect(productionConfigProblems(withAuth).join()).toMatch(/SERVICE_ROLE_KEY/);
-    expect(productionConfigProblems({ ...withAuth, SUPABASE_SERVICE_ROLE_KEY: "srv" })).toEqual([]);
-  });
-
   it("throws with a readable message listing every problem", () => {
     expect(() => assertProductionConfig({ VERCEL_ENV: "production" })).toThrow(/SITE_URL[\s\S]*OPERATOR_NAME[\s\S]*CONTACT_EMAIL/);
   });

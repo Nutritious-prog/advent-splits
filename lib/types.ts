@@ -80,7 +80,6 @@ export interface ParticipantView {
   gender: import("./gender").Gender;
   difficultyPref: DifficultyPref;
   excludeEquipment: boolean;
-  linked: boolean;
   isDemo: boolean;
 }
 

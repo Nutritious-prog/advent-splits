@@ -4,7 +4,6 @@ import { ProfileClient } from "./ProfileClient";
 import { getParticipant } from "@/lib/session";
 import { buildState } from "@/lib/progress";
 import { requestNow } from "@/lib/test-clock";
-import { emailAuthEnabled } from "@/lib/supabase-auth";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Profil — THE ADVENT SPLITS" };
@@ -15,7 +14,7 @@ export default async function ProfilePage() {
   const st = await buildState(p, await requestNow());
   return (
     <AppShell active="profile">
-      <ProfileClient participant={st.participant} emailEnabled={emailAuthEnabled()} completed={st.stats.completed} />
+      <ProfileClient participant={st.participant} completed={st.stats.completed} />
     </AppShell>
   );
 }

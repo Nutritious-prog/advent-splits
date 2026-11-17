@@ -137,7 +137,7 @@ Kolejność: P0 → P1 → P2. Każde zadanie kończy się zielonym `npm test`, 
 - **Rozwiązanie:** osobny projekt Supabase i Vercel Preview z `ENABLE_TEST_MODE=true` (po T-08 tylko dla admina). Nigdy nie współdzielić bazy z produkcją.
 - **Kryteria:** staging działa pod osobną domeną, ma własną bazę, a tryb testowy jest dostępny tylko po zalogowaniu admina.
 - **Zależności:** T-08.
-- **Stan:** kod i narzędzia gotowe: `WDROZENIE.md` (instrukcja krok po kroku), `npm run verify:supabase` (RLS, brak dostępu publicznego klucza, migracje, 24 dni, ustawienia Auth, testowy mail), `--env <plik>` dla `db:migrate`/`db:seed`/`db:purge`. Po drodze naprawiono DB-01 (jsonb na sterowniku `postgres`). Czeka na założenie projektów Supabase/Vercel przez właściciela.
+- **Stan:** kod i narzędzia gotowe: `WDROZENIE.md` (instrukcja krok po kroku), `npm run verify:db` (RLS, brak uprawnień ról API, migracje, 24 dni), `--env <plik>` dla `db:migrate`/`db:seed`/`db:purge`. Po drodze naprawiono DB-01 (jsonb na sterowniku `postgres`). Czeka na założenie projektów Supabase/Vercel przez właściciela.
 
 ---
 

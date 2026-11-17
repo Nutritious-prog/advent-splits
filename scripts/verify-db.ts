@@ -1,7 +1,5 @@
-// Verifies a Supabase environment before you point the app at it. Read-only, prints no secrets.
-//   npm run verify:supabase -- --env .env.staging.local
-//   npm run verify:supabase -- --env .env.production.local --production
-//   npm run verify:supabase -- --env .env.staging.local --send-test-otp you@example.com   (sends ONE real e-mail)
+// Verifies a database environment before you point the app at it. Read-only, prints no secrets.
+//   npm run verify:db -- --env .env.production.local --production
 import fs from "node:fs";
 import path from "node:path";
 import { connect, loadEnv } from "./_db";
@@ -14,10 +12,6 @@ const fail = (name: string, detail?: string) => results.push({ ok: false, name, 
 const skip = (name: string, detail?: string) => results.push({ ok: null, name, detail });
 
 const APP_TABLES = ["challenges", "participants", "sessions", "assignments", "admin_events", "rate_limits", "schema_migrations"];
-const arg = (k: string) => {
-  const i = process.argv.indexOf(k);
-  return i > -1 ? process.argv[i + 1] : undefined;
-};
 
 async function main() {
   const loaded = loadEnv();
@@ -27,7 +21,7 @@ async function main() {
   // 1. Configuration
   const has = (k: string) => (env[k] ? "set" : "MISSING");
   console.log(
-    ["DATABASE_URL", "SESSION_SECRET", "ADMIN_PASSWORD", "SUPABASE_URL", "SUPABASE_ANON_KEY", "SUPABASE_SERVICE_ROLE_KEY", "NEXT_PUBLIC_SITE_URL", "NEXT_PUBLIC_OPERATOR_NAME", "NEXT_PUBLIC_CONTACT_EMAIL"]
+    ["DATABASE_URL", "SESSION_SECRET", "ADMIN_PASSWORD", "NEXT_PUBLIC_SITE_URL", "NEXT_PUBLIC_OPERATOR_NAME", "NEXT_PUBLIC_CONTACT_EMAIL"]
       .map((k) => `  ${k.padEnd(28)} ${has(k)}`)
       .join("\n"),
   );
@@ -101,53 +95,6 @@ async function main() {
       fail("database checks", (e as Error).message);
     } finally {
       await end();
-    }
-  }
-
-  // 3. Supabase API (public key must not read anything)
-  const url = env.SUPABASE_URL?.replace(/\/$/, "");
-  const anon = env.SUPABASE_ANON_KEY;
-  if (!url || !anon) {
-    skip("Supabase API checks", "SUPABASE_URL / SUPABASE_ANON_KEY not set (e-mail login disabled)");
-  } else {
-    for (const t of ["participants", "assignments", "sessions", "challenges"]) {
-      try {
-        const r = await fetch(`${url}/rest/v1/${t}?select=*&limit=1`, { headers: { apikey: anon, Authorization: `Bearer ${anon}` } });
-        const body = await r.text();
-        const rows = r.ok ? (JSON.parse(body) as unknown[]) : [];
-        if (r.ok && rows.length) fail(`public API cannot read ${t}`, `HTTP ${r.status}, returned ${rows.length} row(s)!`);
-        else pass(`public API cannot read ${t}`, `HTTP ${r.status}${r.ok ? ", 0 rows" : ""}`);
-      } catch (e) {
-        fail(`public API cannot read ${t}`, (e as Error).message);
-      }
-    }
-    try {
-      const r = await fetch(`${url}/auth/v1/settings`, { headers: { apikey: anon } });
-      const s = (await r.json()) as { external?: { email?: boolean }; disable_signup?: boolean; mailer_autoconfirm?: boolean };
-      if (s.external?.email) pass("Auth: e-mail provider enabled");
-      else fail("Auth: e-mail provider enabled", "Authentication → Sign In / Providers → Email");
-      if (s.disable_signup) fail("Auth: sign-ups allowed", "the first OTP for a new e-mail must create the user");
-      else pass("Auth: sign-ups allowed");
-    } catch (e) {
-      fail("Auth settings", (e as Error).message);
-    }
-    if (env.SUPABASE_SERVICE_ROLE_KEY) {
-      const r = await fetch(`${url}/auth/v1/admin/users?per_page=1`, {
-        headers: { apikey: env.SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}` },
-      });
-      if (r.ok) pass("service role key valid (account deletion works)");
-      else fail("service role key valid", `HTTP ${r.status}`);
-    } else skip("service role key valid", "SUPABASE_SERVICE_ROLE_KEY not set");
-
-    const to = arg("--send-test-otp");
-    if (to) {
-      const r = await fetch(`${url}/auth/v1/otp`, {
-        method: "POST",
-        headers: { apikey: anon, "Content-Type": "application/json" },
-        body: JSON.stringify({ email: to, create_user: true }),
-      });
-      if (r.ok) pass("test OTP e-mail sent", `check ${to}: the mail must contain a 6-digit code (template {{ .Token }})`);
-      else fail("test OTP e-mail sent", `HTTP ${r.status} ${(await r.text()).slice(0, 160)}`);
     }
   }
 

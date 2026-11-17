@@ -16,7 +16,7 @@ Core loop: **open door → reveal challenge → do it → mark complete → shar
 | Database | Supabase **Postgres**, reached directly over SQL from the server (`postgres` driver) | All reads and writes go through our server, so no database key ever reaches the browser |
 | Local DB | **PGlite** (Postgres compiled to WASM) in `.data/` | Local dev and tests run the *same SQL, constraints and transactions* as production, with no Docker |
 | Identity | Guest participant + random session token in an `httpOnly` cookie (only an HMAC hash is stored) | One-field onboarding (nickname only) |
-| Cross-device | Optional e-mail sign-in with a **6-digit code** (Supabase Auth OTP) | Magic links break in Instagram's in-app browser (they open in Safari, without the session). Typing a code keeps the user in the same browser |
+| No login | No e-mail, password or cross-device sign-in (v1 decision) | The calendar lives in the browser that joined (400-day cookie). Clearing browser data loses access |
 | Share cards | `next/og` (Satori), 1080×1920 PNG, rendered on the server | Real image files for Stories, with native share on mobile and a download fallback |
 
 ### Security model
@@ -25,7 +25,7 @@ Core loop: **open door → reveal challenge → do it → mark complete → shar
 - **Unlock dates are enforced on the server** (`lib/time.ts` → `isUnlocked`), using `ADVENT_TZ` (Europe/Warsaw). The client clock is only used for the countdown display, and that clock is corrected against `/api/time`.
 - Writes are rejected if `Origin` doesn't match the host, on top of `SameSite=Lax` (sessions) and `SameSite=Strict` (admin) cookies.
 - Input is validated with zod on the server. Results are re-validated and formatted on the server.
-- Best-effort in-memory rate limiting covers joining, OTP and admin login. For real protection, add Vercel Firewall rules.
+- Best-effort in-memory rate limiting covers joining and admin login. For real protection, add Vercel Firewall rules.
 
 ### Challenge assignment (`lib/assign.ts`)
 1. `POST /api/doors/:day/open` checks that the day is unlocked by the server clock.
@@ -51,7 +51,7 @@ app/
   page.tsx                 Landing (pre-launch countdown, door preview, how it works, IG section, FAQ)
   kalendarz/               Calendar (24 doors, reveal, challenge card)
   statystyki/              Stats + achievements + completed list
-  profil/                  Nickname, preferences, e-mail linking, invite card, reset, logout
+  profil/                  Nickname, preferences, invite card, reset, delete
   admin/                   Password-protected admin (stats, challenge editor, demo mode)
   admin/podglad/           Admin-only landing preview at a simulated time
   api/…                    Route handlers (see below)
@@ -68,7 +68,7 @@ supabase/seed.sql          Generated challenge seed (paste into the SQL editor)
 scripts/                   migrate / seed / export-seed-sql / check-challenges / gen-icon-nodes
 ```
 
-API: `POST /api/participant` · `GET|PATCH /api/me` · `POST /api/me/reset` · `POST /api/doors/:day/(open|accept|complete|result)` · `GET /api/share/:day` · `GET /api/share/invite` · `POST /api/auth/email/(start|verify)` · `POST /api/auth/logout` · `GET /api/time` · `/api/admin/*`
+API: `POST /api/participant` · `GET|PATCH /api/me` · `POST /api/me/reset` · `POST /api/doors/:day/(open|accept|complete|result)` · `GET /api/share/:day` · `GET /api/share/invite` · `GET /api/time` · `/api/admin/*`
 
 ---
 
@@ -96,13 +96,6 @@ With `DATABASE_URL` empty, the app creates `.data/pglite`, runs the migrations a
 2. **Schema:** SQL Editor → paste and run `supabase/migrations/0001_init.sql`, or run `npm run db:migrate` locally with `DATABASE_URL` set.
 3. **Challenges:** SQL Editor → paste and run `supabase/seed.sql`, or run `npm run db:seed`. Both are idempotent and never overwrite admin edits.
 4. **Connection string:** Project Settings → Database → Connection string → **Transaction pooler** (port `6543`). This is `DATABASE_URL`. Keep it server-only.
-5. **E-mail sign-in (optional but recommended):**
-   - Authentication → Providers → Email: enabled.
-   - Authentication → Email Templates → **Magic Link**: put the code in the template, e.g.
-     `<h2>Twój kod: {{ .Token }}</h2><p>Wpisz go w THE ADVENT SPLITS. Kod wygasa po kilku minutach.</p>`
-   - **Configure custom SMTP** (Resend, Postmark, SES…) under Authentication → SMTP. Supabase's built-in mailer is limited to a few e-mails per hour, which is not enough for a campaign.
-   - Copy `SUPABASE_URL` and the **anon** key (Project Settings → API). The app only uses them server-side.
-
 ### 2. Vercel
 1. Import the repository. The framework is detected automatically.
 2. Environment variables (Production):
@@ -112,10 +105,8 @@ With `DATABASE_URL` empty, the app creates `.data/pglite`, runs the migrations a
 | `DATABASE_URL` | Supabase transaction pooler URL |
 | `SESSION_SECRET` | `openssl rand -base64 48` |
 | `ADMIN_PASSWORD` | strong password (≥10 chars, required in production) |
-| `SUPABASE_URL`, `SUPABASE_ANON_KEY` | for e-mail codes (optional) |
 | `NEXT_PUBLIC_SITE_URL` | e.g. `https://advent.twojadomena.pl` (printed on share cards) |
 | `NEXT_PUBLIC_INSTAGRAM_HANDLE` | `wlod_run` |
-| `SUPABASE_SERVICE_ROLE_KEY` | optional, server-only: lets "Usuń moje konto" also delete the login record holding the e-mail |
 | `NEXT_PUBLIC_OPERATOR_NAME`, `NEXT_PUBLIC_CONTACT_EMAIL` | shown on `/prywatnosc` (privacy policy). **Fill in before launch** |
 | `ENABLE_TEST_MODE` | leave empty in production. `true` only on a staging deploy |
 | `ADVENT_START` / `ADVENT_DAYS` / `ADVENT_TZ` | `2026-12-01` / `24` / `Europe/Warsaw` |
@@ -133,9 +124,9 @@ Strict mode is on when `VERCEL_ENV=production` (set automatically by Vercel) or 
 ### 3. Launch checklist
 - [ ] `/admin` → Demo → preview every state (before start, Dec 1, mid, Dec 24, after) and the landing preview
 - [ ] Join on a real iPhone **from inside Instagram** (paste the link into a DM and open it there)
-- [ ] Link an e-mail, open the site in Safari, sign in with the code, and check the progress is there
+- [ ] Close and reopen the link from Instagram and check the progress is still there
 - [ ] Download a share card on iOS and Android
-- [ ] Vercel Firewall: rate-limit `/api/participant`, `/api/auth/*`, `/api/admin/login`
+- [ ] Vercel Firewall: rate-limit `/api/participant`, `/api/admin/login`
 - [ ] Update the Instagram bio link with the final domain
 
 ### Timeline behaviour
@@ -147,9 +138,8 @@ Strict mode is on when `VERCEL_ENV=production` (set automatically by Vercel) or 
 ---
 
 ## Privacy and accounts
-- E-mail is stored **only in Supabase Auth**. Participants hold just `auth_user_id` (migration `0002_no_email_copy.sql`).
-- Guests are asked to add an e-mail in a popup before opening a new door. "Może później" snoozes it for the browser session, and X/Esc cancels without opening the door.
-- "Usuń moje konto" in the profile deletes the participant, progress and sessions, plus the Supabase Auth user when `SUPABASE_SERVICE_ROLE_KEY` is set.
+- No e-mail or other contact data is collected. A participant is a nickname plus progress, reachable only through the session cookie. (The unused `auth_user_id` column from the earlier e-mail login stays in the schema.)
+- "Usuń moje konto" in the profile deletes the participant, progress and sessions.
 - `/prywatnosc`: a plain-language Polish privacy policy (only necessary cookies, so no consent banner).
 
 ## Form of address (on / ona / neutralnie)
@@ -172,16 +162,11 @@ The floating "Tryb testowy" button simulates any advent day for the real partici
 Production responses carry `Content-Security-Policy` (self only, no third-party scripts), `Strict-Transport-Security`, `Permissions-Policy`, `Cross-Origin-Opener-Policy`, `X-Frame-Options: DENY`, `nosniff` and `Referrer-Policy` (`next.config.ts`). CSP is not sent in development because hot reload needs eval and a websocket. The Next image optimizer is disabled (`images.unoptimized`), because the app does not use `next/image`.
 
 ### Rate limits
-Sensitive endpoints use a limiter stored in Postgres (`rate_limits` table, migration 0005), so limits hold across serverless instances. Keys are HMAC hashes, with no raw e-mails or IPs:
+Sensitive endpoints use a limiter stored in Postgres (`rate_limits` table, migration 0005), so limits hold across serverless instances. Keys are HMAC hashes, with no raw IPs:
 - admin login: 8 / 15 min per IP;
-- OTP send: 3 / 15 min per e-mail, 10 / 15 min per IP;
-- OTP verify: 5 / 15 min per e-mail;
 - profile creation: 20 / h per IP.
 
-Recommended extra layer: Vercel Firewall rate-limit rules for `/api/admin/login`, `/api/auth/*` and `/api/participant`.
-
-### Signing in when the device already has a guest calendar
-If an e-mail that already owns a calendar is used on a device with a guest calendar, the user chooses between **Scal kalendarze** (merge: completed days from both are kept, the newest result wins, the guest profile is removed) and **Użyj tylko kalendarza z maila**. The decision is bound to a signed, 10-minute, httpOnly token (`/api/auth/email/resolve`).
+Recommended extra layer: Vercel Firewall rate-limit rules for `/api/admin/login` and `/api/participant`.
 
 ### Monitoring
 Every server error is one JSON line in the logs with `"level":"error"` (method, path, error name and message, short stack; no bodies or cookies). In Vercel: Logs → filter `level":"error` → create an alert, or add Sentry later.
@@ -189,11 +174,11 @@ Every server error is one JSON line in the logs with `"level":"error"` (method, 
 ### Backups and retention
 - **Before 1 Dec and weekly in December:** `pg_dump "$DATABASE_URL" --no-owner --format=custom -f advent-YYYY-MM-DD.dump` (use the session pooler or direct connection string for dumps). Alternatively use a Supabase plan with daily backups for the event period.
 - **Restore test (once, on staging):** `pg_restore --no-owner --clean -d "$STAGING_DATABASE_URL" advent-YYYY-MM-DD.dump`, then open the staging app and check a few calendars.
-- **End of retention** (the privacy policy promises at most 12 months after 24 Dec): `npm run db:purge` (dry run), then `npm run db:purge -- --confirm`. This deletes all participant data and, with `SUPABASE_SERVICE_ROLE_KEY`, the login e-mails in Supabase Auth. Make a backup first.
+- **End of retention** (the privacy policy promises at most 12 months after 24 Dec): `npm run db:purge` (dry run), then `npm run db:purge -- --confirm`. This deletes all participant data. Make a backup first.
 
 ## Admin and demo mode
 `/admin` (password from `ADMIN_PASSWORD`, 12-hour signed cookie):
-- **Statystyki:** participants, linked accounts, revealed, completed, completion rate, daily active participants (Warsaw dates), per-door completion, most-assigned challenges, sign-ups. Aggregates only, with no nicknames or e-mails.
+- **Statystyki:** participants, revealed, completed, completion rate, daily active participants (Warsaw dates), per-door completion, most-assigned challenges, sign-ups. Aggregates only, with no nicknames.
 - **Wyzwania:** search and filter the pool; add, edit or disable challenges; change difficulty and descriptions; "Uzupełnij z seedu" inserts new seed records. Disabled challenges are never drawn, but stay with people who already have them.
 - **Demo / podgląd:** an isolated `is_demo` participant plus a simulated clock that is passed **only to admin endpoints**. Presets: before start / Dec 1 / mid / Dec 24 / after end. Scenarios: "all states" (locked, available, opened, completed), "all done", "reset". A landing preview at the simulated time is also available. The demo participant can never be reached through a public session and is excluded from stats. Public endpoints always use the real server clock.
 
@@ -208,5 +193,4 @@ Migration `0004_fixed_calendar.sql` adds `day` and `swap`, switches to the endur
 
 ## What still needs configuring (outside the code)
 - A Supabase project, a Vercel project, a domain and the environment variables above.
-- Custom SMTP plus the e-mail template containing `{{ .Token }}`, if you want e-mail sign-in. Without it the app works fully in guest mode and hides the e-mail options.
 - Vercel Firewall rate-limit rules (the in-app limiter is per instance and best-effort).

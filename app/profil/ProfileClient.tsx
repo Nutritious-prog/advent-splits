@@ -1,17 +1,16 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, LogOut, RotateCcw, ShieldCheck, Share2, Trash2 } from "lucide-react";
+import { Info, RotateCcw, Share2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
 import { useToast } from "@/components/ui/Toast";
-import { EmailAuth } from "@/components/EmailAuth";
 import { GenderPicker } from "@/components/GenderPicker";
 import { ShareSheet } from "@/components/calendar/ShareSheet";
 import { api } from "@/lib/client";
 import type { ParticipantView } from "@/lib/types";
 
-export function ProfileClient({ participant, emailEnabled, completed }: { participant: ParticipantView; emailEnabled: boolean; completed: number }) {
+export function ProfileClient({ participant, completed }: { participant: ParticipantView; completed: number }) {
   const router = useRouter();
   const toast = useToast();
   const [nickname, setNickname] = useState(participant.nickname);
@@ -19,7 +18,6 @@ export function ProfileClient({ participant, emailEnabled, completed }: { partic
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmReset, setConfirmReset] = useState(false);
-  const [confirmLogout, setConfirmLogout] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const [invite, setInvite] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -67,17 +65,6 @@ export function ProfileClient({ participant, emailEnabled, completed }: { partic
     }
   }
 
-  async function logout() {
-    setBusy("logout");
-    try {
-      await api("/api/auth/logout", { body: {} });
-      window.location.assign("/");
-    } catch (err) {
-      toast("error", "Nie udało się", (err as Error).message);
-      setBusy(null);
-    }
-  }
-
   return (
     <div>
       <p className="eyebrow">Ustawienia uczestnika</p>
@@ -104,48 +91,13 @@ export function ProfileClient({ participant, emailEnabled, completed }: { partic
         </Button>
       </form>
 
-      <section className="mt-12 border-t border-line pt-8">
-        <h2 className="display text-3xl">Zapisz postęp na stałe</h2>
-        {participant.linked ? (
-          <div className="mt-4 flex items-start gap-3 border border-mustard/40 bg-mustard/5 p-4">
-            <ShieldCheck className="mt-0.5 shrink-0 text-mustard" size={20} aria-hidden />
-            <p className="text-sm leading-relaxed">
-              <strong>Profil połączony z e-mailem.</strong> Na innym urządzeniu kliknij „Zaloguj”, wpisz ten sam adres i kod z maila, żeby wrócić do swojego kalendarza.
-            </p>
-          </div>
-        ) : (
-          <>
-            <div className="mt-4 flex items-start gap-3 border border-danger/30 bg-danger/5 p-4">
-              <AlertTriangle className="mt-0.5 shrink-0 text-danger" size={20} aria-hidden />
-              <p className="text-sm leading-relaxed text-cream/85">
-                Grasz jako gość. Postęp jest zapisany w naszej bazie, ale dostęp do niego trzyma tylko ta przeglądarka. Wyczyszczenie danych przeglądarki, tryb prywatny albo zmiana
-                urządzenia (także przejście z aplikacji Instagrama do Safari) może oznaczać utratę dostępu.
-              </p>
-            </div>
-            <div className="mt-4">
-              {emailEnabled ? (
-                <EmailAuth
-                  cta="Połącz"
-                  onDone={(mode) => {
-                    const msg =
-                      mode === "merged"
-                        ? (["Postęp scalony", "Okienka z obu urządzeń są teraz w jednym kalendarzu."] as const)
-                        : mode === "switched"
-                          ? (["Zalogowano", "Przełączyliśmy Cię na kalendarz przypisany do tego maila."] as const)
-                          : (["Połączono", "Twój postęp jest teraz bezpieczny."] as const);
-                    toast("success", msg[0], msg[1]);
-                    // Session may have changed (merge/switch): full reload avoids stale cached views.
-                    if (mode === "merged" || mode === "switched") setTimeout(() => window.location.reload(), 700);
-                    else router.refresh();
-                  }}
-                />
-              ) : (
-                <p className="text-sm text-cream/55">Logowanie e-mailem nie jest jeszcze włączone przez organizatora.</p>
-              )}
-            </div>
-          </>
-        )}
-      </section>
+      <div className="mt-10 flex items-start gap-3 border border-line p-4">
+        <Info className="mt-0.5 shrink-0 text-mustard" size={20} aria-hidden />
+        <p className="text-sm leading-relaxed text-cream/75">
+          Twój kalendarz jest przypisany do tej przeglądarki. Wracaj na tym samym telefonie i w tej samej aplikacji (jeśli kalendarz otwierasz z Instagrama, wracaj przez Instagram).
+          Wyczyszczenie danych przeglądarki albo tryb prywatny odetnie dostęp do postępu.
+        </p>
+      </div>
 
       <section className="mt-12 border-t border-line pt-8">
         <h2 className="display text-3xl">Zaproś ekipę</h2>
@@ -160,9 +112,6 @@ export function ProfileClient({ participant, emailEnabled, completed }: { partic
         <Button variant="danger" onClick={() => setConfirmReset(true)} disabled={completed === 0}>
           <RotateCcw size={16} /> Resetuj postęp
         </Button>
-        <Button variant="ghost" onClick={() => (participant.linked ? logout() : setConfirmLogout(true))} loading={busy === "logout"}>
-          <LogOut size={16} /> Wyloguj
-        </Button>
         <Button variant="danger" onClick={() => setConfirmDelete(true)}>
           <Trash2 size={16} /> Usuń moje konto
         </Button>
@@ -175,7 +124,7 @@ export function ProfileClient({ participant, emailEnabled, completed }: { partic
         <div className="p-6 sm:p-8">
           <h2 className="display text-4xl">Usunąć konto?</h2>
           <p className="mt-3 text-cream/70">
-            Skasujemy na zawsze Twój nick, odkryte wyzwania, ukończenia, wyniki i e-mail używany do logowania. Tego nie da się cofnąć ani odzyskać.
+            Skasujemy na zawsze Twój nick, odkryte wyzwania, ukończenia i wyniki. Tego nie da się cofnąć ani odzyskać.
           </p>
           <label htmlFor="del" className="eyebrow mt-6 block">
             Wpisz USUŃ, żeby potwierdzić
@@ -210,21 +159,6 @@ export function ProfileClient({ participant, emailEnabled, completed }: { partic
             </Button>
             <Button variant="ghost" onClick={() => setConfirmReset(false)}>
               Jednak nie
-            </Button>
-          </div>
-        </div>
-      </Sheet>
-
-      <Sheet open={confirmLogout} onClose={() => setConfirmLogout(false)} label="Potwierdź wylogowanie">
-        <div className="p-6 sm:p-8">
-          <h2 className="display text-4xl">Uwaga</h2>
-          <p className="mt-3 text-cream/70">Twój profil nie jest połączony z e-mailem. Po wylogowaniu nie da się do niego wrócić. Najpierw połącz e-mail, jeśli chcesz zachować postęp.</p>
-          <div className="mt-6 grid gap-2">
-            <Button variant="danger" onClick={logout} loading={busy === "logout"} size="lg">
-              Wyloguj mimo to
-            </Button>
-            <Button variant="ghost" onClick={() => setConfirmLogout(false)}>
-              Zostaję
             </Button>
           </div>
         </div>
