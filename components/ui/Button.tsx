@@ -23,7 +23,7 @@ export const Button = forwardRef<HTMLButtonElement, Props>(function Button(
   { variant = "primary", loading, size = "md", className = "", children, disabled, ...rest },
   ref,
 ) {
-  const sz = size === "lg" ? "min-h-14 px-7 text-base" : size === "sm" ? "min-h-10 px-4 text-xs" : "min-h-12 px-5 text-sm";
+  const sz = size === "lg" ? "min-h-14 px-5 text-sm min-[400px]:px-7 min-[400px]:text-base" : size === "sm" ? "min-h-10 px-4 text-xs" : "min-h-12 px-5 text-sm";
   return (
     <motion.button
       ref={ref}

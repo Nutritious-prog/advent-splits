@@ -87,7 +87,7 @@ export default async function StatsPage() {
             {unlockedCount} / {st.achievements.length}
           </p>
         </div>
-        <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+        <ul className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
           {st.achievements.map((a) => (
             <li key={a.id} className={`flex items-center gap-4 border p-4 ${a.unlocked ? "border-mustard/50 bg-mustard/5" : "border-line"}`}>
               <span
@@ -98,7 +98,7 @@ export default async function StatsPage() {
               </span>
               <div className="min-w-0 flex-1">
                 <div className="flex items-baseline justify-between gap-2">
-                  <p className={`display truncate text-xl ${a.unlocked ? "" : "text-cream/55"}`}>{a.title}</p>
+                  <p className={`display min-w-0 text-xl [overflow-wrap:anywhere] ${a.unlocked ? "" : "text-cream/55"}`}>{a.title}</p>
                   <span className={`shrink-0 text-xs font-bold tabular ${a.unlocked ? "text-mustard" : "text-cream/55"}`}>
                     {a.unlocked ? "ZDOBYTA" : `${a.progress}/${a.target}`}
                   </span>

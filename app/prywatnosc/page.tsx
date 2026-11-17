@@ -26,7 +26,7 @@ export default function PrivacyPage() {
       </header>
       <main className="mx-auto max-w-3xl px-4 pb-20 pt-6">
         <p className="eyebrow">Krótko i po ludzku</p>
-        <h1 className="display mt-2 text-6xl">Prywatność</h1>
+        <h1 className="display mt-2 text-5xl min-[400px]:text-6xl">Prywatność</h1>
         <p className="mt-5 text-lg text-cream/75">
           Zbieramy tylko to, co jest potrzebne, żeby kalendarz działał. Bez reklam, bez analityki śledzącej, bez sprzedawania danych, bez newslettera.
         </p>

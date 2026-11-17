@@ -253,7 +253,7 @@ export function Landing(props: {
               ["Z głową", "Mocne akcenty w weekendy, regeneracja w tygodniu. Nie ćwicz przez ból i dopasuj dzień do swojego planu treningowego."],
             ].map(([t, x]) => (
               <div key={t} className="border-l-2 border-mustard pl-4">
-                <h3 className="display text-2xl">{t}</h3>
+                <h3 className="display text-2xl sm:text-xl lg:text-2xl">{t}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-cream/60">{x}</p>
               </div>
             ))}

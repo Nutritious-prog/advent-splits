@@ -111,6 +111,8 @@ export function CalendarApp({
 
   function closeChallenge() {
     setActiveDay(null);
+    // The share sheet belongs to the open door: never carry it over to the next one.
+    setShareOpen(false);
   }
 
   async function openDoorNow(door: DoorState) {

@@ -51,9 +51,9 @@ export function ChallengeCard({
     <div className="relative">
       <motion.div variants={container} initial="hidden" animate="show" className="px-5 pb-6 pt-6 sm:px-8 sm:pt-8">
         <motion.div variants={item} className="flex items-center gap-3 pr-10">
-          <span className="display text-2xl text-mustard">DZIEŃ {String(door.day).padStart(2, "0")}</span>
+          <span className="display shrink-0 whitespace-nowrap text-2xl text-mustard">DZIEŃ {String(door.day).padStart(2, "0")}</span>
           <span className="h-px flex-1 bg-line" />
-          <span className="eyebrow">{CATEGORY_LABEL[c.category]}</span>
+          <span className="eyebrow min-w-0 text-right">{CATEGORY_LABEL[c.category]}</span>
         </motion.div>
 
         <div className="mt-6 flex items-start gap-4 sm:gap-5">
@@ -73,7 +73,8 @@ export function ChallengeCard({
               className="display text-[length:min(2.15rem,var(--fit))] [overflow-wrap:anywhere] sm:text-[length:min(3rem,var(--fit))]"
               style={{ "--fit": `calc(100cqw / ${(longestWord(c.title) * 0.5).toFixed(2)})` } as React.CSSProperties}
             >
-              {c.title}
+              {/* keep "6 × 1" together so the × never ends a line */}
+              {c.title.replace(/ × /g, " × ")}
             </h2>
             <p className="mt-2 text-base text-cream/70">{c.teaser}</p>
           </motion.div>
@@ -84,7 +85,7 @@ export function ChallengeCard({
             <dt className="eyebrow flex items-center gap-1.5">
               <Gauge size={12} aria-hidden /> Poziom
             </dt>
-            <dd className="flex items-center gap-2 text-sm font-bold uppercase">
+            <dd className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-bold uppercase min-[400px]:text-sm">
               <DifficultyBars level={c.difficulty} /> {DIFFICULTY_LABEL[c.difficulty]}
             </dd>
           </div>
@@ -92,13 +93,13 @@ export function ChallengeCard({
             <dt className="eyebrow flex items-center gap-1.5">
               <Clock size={12} aria-hidden /> Czas
             </dt>
-            <dd className="text-sm font-bold uppercase">~{formatMinutes(c.minutes)}</dd>
+            <dd className="text-xs font-bold uppercase min-[400px]:text-sm">~{formatMinutes(c.minutes)}</dd>
           </div>
           <div className="flex flex-col gap-1.5 p-3">
             <dt className="eyebrow flex items-center gap-1.5">
               <Package size={12} aria-hidden /> Sprzęt
             </dt>
-            <dd className="text-sm font-bold uppercase leading-tight [overflow-wrap:anywhere]">{GEAR_LABEL[c.gear]}</dd>
+            <dd className="text-xs font-bold uppercase leading-tight [overflow-wrap:anywhere] min-[400px]:text-sm">{GEAR_LABEL[c.gear]}</dd>
           </div>
         </motion.dl>
 

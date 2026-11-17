@@ -16,7 +16,7 @@ export function GenderPicker({ value, onChange }: { value: Gender; onChange: (g:
               }`}
             >
               <input type="radio" name="gender" value={g} checked={on} onChange={() => onChange(g)} className="sr-only" />
-              <span className="text-sm font-bold tracking-[0.08em]">{GENDER_LABEL[g].title}</span>
+              <span className="text-xs font-bold tracking-[0.04em] min-[400px]:text-sm min-[400px]:tracking-[0.08em]">{GENDER_LABEL[g].title}</span>
               <span className="mt-0.5 text-[0.7rem] text-cream/55">{GENDER_LABEL[g].example}</span>
             </label>
           );

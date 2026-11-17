@@ -3,6 +3,9 @@ import { AnimatePresence, motion } from "motion/react";
 import { X } from "lucide-react";
 import { useEffect, useRef } from "react";
 
+// Open sheets, newest last: Esc closes only the top one when sheets are stacked (e.g. share over a challenge).
+const stack: object[] = [];
+
 /** Bottom sheet on mobile, centered panel on desktop. Esc + backdrop close, focus moves in and back. */
 export function Sheet({
   open,
@@ -27,7 +30,10 @@ export function Sheet({
   useEffect(() => {
     if (!open) return;
     lastFocus.current = document.activeElement as HTMLElement;
+    const id = {};
+    stack.push(id);
     const onKey = (e: KeyboardEvent) => {
+      if (stack[stack.length - 1] !== id) return;
       if (e.key === "Escape") closeRef.current();
       if (e.key === "Tab" && panel.current) {
         const f = panel.current.querySelectorAll<HTMLElement>(
@@ -46,15 +52,16 @@ export function Sheet({
       }
     };
     document.addEventListener("keydown", onKey);
-    const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     // Move focus into the dialog only if the user hasn't already focused something inside it.
     const t = setTimeout(() => {
       if (panel.current && !panel.current.contains(document.activeElement)) panel.current.focus();
     }, 50);
     return () => {
+      stack.splice(stack.indexOf(id), 1);
       document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prev;
+      // Unlock scrolling only when the last open sheet closes (stacked sheets may close in any order).
+      if (!stack.length) document.body.style.overflow = "";
       clearTimeout(t);
       lastFocus.current?.focus?.();
     };
